@@ -7,6 +7,7 @@
     security_group: cosimo2018-sg
     image: ami-0e01ce4ee18447327
     region: us-east-2
+    mysql_root_password: 
   tasks:
     - name: Launch instance
       ec2:
@@ -18,11 +19,13 @@
         region: "{{ region }}"
         vpc_subnet_id: subnet-129a6779
         assign_public_ip: yes
+        instance_tags:
+          Name: Web-Server
         user_data: |
           #!/bin/bash -xe
 
           echo Installing nano, git
-          yum install nano git -y
+          yum install nano git expect -y
 
           echo installing php 7.3
           amazon-linux-extras install -y php7.3
@@ -30,6 +33,7 @@
 
           echo Installing apache
           yum install httpd -y
+          yum install mod_ssl -y
           touch /var/www/html/phpinfo.php
           echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
 
@@ -46,34 +50,22 @@
           unzip website.zip
           cd installable_file
           unzip dizzcox-v2.0.zip -d /var/www/html
-          yum install mod_ssl -y
+
+          echo Running MySQL secure installtion
+          mysql_temp_pass=$(grep 'temporary password' /var/log/mysqld.log | sed -n -e 's/^.*root@localhost: //p')
+          sed -i 's|xxxxx|'\"$mysql_temp_pass\"'|g' /tmp/cosimo2018/expect.sh
+          /tmp/cosimo2018/expect.sh > /tmp/cosimo2018/expectOutput.txt
+
+          echo importing database        
+          mysql --user=root --password=2/XzS6atdd=h -e "create database cosimo2018"
+          cd /tmp/cosimo2018/database
+          mysql --user=root --password=2/XzS6atdd=h cosimo2018 < dizzcox.sql          
 
           systemctl enable httpd
           systemctl start httpd
 
-          echo cleaning up
-          rm -rf /tmp/*
+          # echo cleaning up
+          # rm -rf /tmp/*
 
           echo Installation complete
       register: ec2
-
-    - name: Add the new instance to ansible hosts
-      add_host:
-        hostname: "{{ item.public_ip }}"
-        groupname: launched
-      loop: "{{ ec2.instances }}"
-
-    - name: Wait for SSH to come up
-      delegate_to: "{{ item.public_dns_name }}"
-      wait_for_connection:
-        delay: 60
-        timeout: 320
-      loop: "{{ ec2.instances }}"
-
-# - name: Configure instance(s)
-#   hosts: launched
-#   become: True
-#   gather_facts: True
-#   roles:
-#     - deploy_database
-    

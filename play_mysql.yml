@@ -1,0 +1,19 @@
+- name: Setup MySQL
+  hosts: localhost
+  gather_facts: False
+  vars:
+    keypair: cosimo2018key
+    instance_type: t2.micro
+    security_group: cosimo2018-sg
+    image: ami-0e01ce4ee18447327
+    region: us-east-2
+  tasks:
+    - name: Adds Python MySQL support
+      yum: name=MySQL-python state=present
+
+    - name: Get temporary MySQL password
+      shell: "grep 'temporary password' /var/log/mysqld.log | sed -n -e 's/^.*root@localhost: //p'"
+      register: mysql_root_password
+
+    - name: Sets the mysql root password 
+      mysql_user: user=root password="{{ mysql_root_password }}" host=localhost

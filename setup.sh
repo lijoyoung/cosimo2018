@@ -1,7 +1,7 @@
 #!/bin/bash -xe
 
 echo Installing nano, git
-yum install nano git -y
+yum install nano git expect -y
 
 echo installing php 7.3
 amazon-linux-extras install -y php7.3
@@ -9,6 +9,7 @@ yum install php-bcmath php-mbstring php-xml php-gd php-gmp -y
 
 echo Installing apache
 yum install httpd -y
+yum install mod_ssl -y
 touch /var/www/html/phpinfo.php
 echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
 
@@ -25,7 +26,16 @@ cd cosimo2018
 unzip website.zip
 cd installable_file
 unzip dizzcox-v2.0.zip -d /var/www/html
-yum install mod_ssl -y
+
+echo Running MySQL secure installtion
+mysql_temp_pass=$(grep 'temporary password' /var/log/mysqld.log | sed -n -e 's/^.*root@localhost: //p')
+sed -i 's|xxxxx|'\"$mysql_temp_pass\"'|g' /tmp/cosimo2018/expect.sh
+/tmp/cosimo2018/expect.sh > /tmp/cosimo2018/expectOutput.txt
+
+echo importing database       
+mysql --user=root --password=2/XzS6atdd=h -e "create database cosimo2018"
+cd /tmp/cosimo2018/database
+mysql --user=root --password=2/XzS6atdd=h cosimo2018 < dizzcox.sql          
 
 systemctl enable httpd
 systemctl start httpd
