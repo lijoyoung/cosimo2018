@@ -29,10 +29,10 @@ unzip dizzcox-v2.0.zip -d /var/www/html
 
 echo Running MySQL secure installtion
 mysql_temp_pass=$(grep 'temporary password' /var/log/mysqld.log | sed -n -e 's/^.*root@localhost: //p')
-sed -i 's|xxxxx|'\"$mysql_temp_pass\"'|g' /tmp/cosimo2018/expect.sh
-/tmp/cosimo2018/expect.sh > /tmp/cosimo2018/expectOutput.txt
+chmod +x /tmp/cosimo2018/expect.exp
+/tmp/cosimo2018/expect.exp $mysql_temp_pass > /tmp/cosimo2018/expectOutput.txt
 
-echo importing database       
+echo importing database        
 mysql --user=root --password=2/XzS6atdd=h -e "create database cosimo2018"
 cd /tmp/cosimo2018/database
 mysql --user=root --password=2/XzS6atdd=h cosimo2018 < dizzcox.sql          
