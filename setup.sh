@@ -5,7 +5,7 @@ yum install nano git expect -y
 
 echo installing php 7.3
 amazon-linux-extras install -y php7.3
-yum install php-bcmath php-mbstring php-xml php-gd php-gmp -y
+yum install php-bcmath php-mbstring php-xml php-gd php-gmp php-cli php-zip unzip -y
 
 echo Installing apache
 yum install httpd -y
