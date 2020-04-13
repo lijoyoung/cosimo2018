@@ -32,7 +32,9 @@ mysql_temp_pass=$(grep 'temporary password' /var/log/mysqld.log | sed -n -e 's/^
 chmod +x /tmp/cosimo2018/expect.exp
 /tmp/cosimo2018/expect.exp $mysql_temp_pass > /tmp/cosimo2018/expectOutput.txt
 
-echo importing database        
+echo importing database
+# fix mysql-8 limitation
+mysql --user=root --password=2/XzS6atdd=h -e "alter user 'root'@'localhost' identified with mysql_native_password by '2/XzS6atdd=h';"       
 mysql --user=root --password=2/XzS6atdd=h -e "create database cosimo2018"
 cd /tmp/cosimo2018/database
 mysql --user=root --password=2/XzS6atdd=h cosimo2018 < dizzcox.sql          
